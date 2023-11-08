@@ -1,25 +1,33 @@
+
+from trectools import TrecRun, TrecQrel, TrecEval
+from tira.rest_api_client import Client
+from glob import glob
 import pandas as pd
-import pyterrier as pt
+tira = Client()
+
+
+def load_qrels(dataset):
+    return TrecQrel(tira.download_dataset('ir-lab-jena-leipzig-wise-2023', dataset, truth_dataset=True) + '/qrels.txt')
+
+def evaluate_run(qrels):
+    run = TrecRun('./run.txt')
+    trec_eval = TrecEval(run, qrels)
+
+    return {
+        'run': run.get_runid(),
+        'nDCG@10': trec_eval.get_ndcg(depth=10),
+        'nDCG@10 (unjudgedRemoved)': trec_eval.get_ndcg(depth=10, removeUnjudged=True),
+        'MAP': trec_eval.get_map(depth=10),
+        'MRR': trec_eval.get_reciprocal_rank()
+    }
 
 def test_model(model):
-    topics = pd.DataFrame([
-        {'qid': '1', 'query': 'before'},
-        {'qid': '2', 'query': 'css before'},
-        {'qid': '3', 'query': 'after'},
-        {'qid': '4', 'query': 'CSS after'},
-    ])
-
-    qrels = pd.DataFrame([
-        {'qid': '1', 'docno': 'd1', 'relevance': 1}, #d1 is the only relevant document for query 1
-        {'qid': '2', 'docno': 'd1', 'relevance': 1}, #d1 is the only relevant document for query 2
-        {'qid': '3', 'docno': 'd2', 'relevance': 1}, #d2 is the only relevant document for query 3
-        {'qid': '3', 'docno': 'd2', 'relevance': 1}, #d2 is the only relevant document for query 3
-    ])
+    training_qrels = load_qrels('training-20231104-training')
 
     print("Overall performance:\n")
-    print(pt.Experiment([model], topics, qrels, eval_metrics=['ndcg_cut_3', 'P_1']))
+    print(evaluate_run(training_qrels))
     print("\n")
 
     print("Single word search:\n")
-    print(model.search("sport"))    
+    print(model.search("cardiovascular disease"))
     print("\n")
