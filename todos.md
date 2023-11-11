@@ -5,6 +5,7 @@
 - stopwords (Jonas)
 - query expansion (next iteration)
 - improve index with custom weights (next iteration)
+- maybe data cleaning for spam (?)
 
 # general
 - correct evaluation (Mark)
