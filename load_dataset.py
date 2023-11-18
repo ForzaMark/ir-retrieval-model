@@ -7,4 +7,5 @@ def load_dataset():
     queries = pt.io.read_topics(ir_datasets.topics_file(training_dataset), format='trecxml')
 
     dataset = ir_datasets.load(training_dataset)
-    return {'documents': dataset.docs_iter(), 'queries': queries}
+    documents = [{'docno': doc.doc_id, 'text': doc.text or ''} for doc in dataset.docs_iter()]
+    return documents, queries
